@@ -10,17 +10,27 @@ public class PlayerPlatformerController : PhysicsObject
 
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    Vector2 move = Vector2.zero;
 
+    protected bool dash = false;
     // Use this for initialization
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
     }
-
+    protected override void Dash()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift) && dash == false)
+        {
+            dash = true;
+            targetVelocity = move * maxSpeed * 20;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+            dash = false;
+    }
     protected override void ComputeVelocity()
     {
-        Vector2 move = Vector2.zero;
 
         move.x = Input.GetAxis("Horizontal");
 

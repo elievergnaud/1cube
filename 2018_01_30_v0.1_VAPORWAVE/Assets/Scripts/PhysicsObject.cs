@@ -37,13 +37,17 @@ public class PhysicsObject : MonoBehaviour
     {
         targetVelocity = Vector2.zero;
         ComputeVelocity();
+        Dash();
     }
 
     protected virtual void ComputeVelocity()
     {
 
     }
+    protected virtual IEnumerator Dash()
+    {
 
+    }
     void FixedUpdate()
     {
         velocity += gravityModifier * Physics2D.gravity * Time.deltaTime;
