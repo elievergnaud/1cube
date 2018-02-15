@@ -16,7 +16,7 @@ public class PhysicsObject : MonoBehaviour
     protected ContactFilter2D contactFilter;
     protected RaycastHit2D[] hitBuffer = new RaycastHit2D[16];
     protected List<RaycastHit2D> hitBufferList = new List<RaycastHit2D>(16);
-
+    private IEnumerator coroutine;
 
     protected const float minMoveDistance = 0.001f;
     protected const float shellRadius = 0.01f;
@@ -31,6 +31,9 @@ public class PhysicsObject : MonoBehaviour
         contactFilter.useTriggers = false;
         contactFilter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
         contactFilter.useLayerMask = true;
+        /*coroutine = WaitAndPrint(1.0f);
+        StartCoroutine(coroutine);
+        print("Before WaitAndPrint finishes " + Time.time);*/
     }
 
     void Update()
@@ -38,13 +41,18 @@ public class PhysicsObject : MonoBehaviour
         targetVelocity = Vector2.zero;
         ComputeVelocity();
         Dash();
+        ParticleModificator();
     }
 
     protected virtual void ComputeVelocity()
     {
 
     }
-    protected virtual IEnumerator Dash()
+    protected virtual void Dash()
+    {
+
+    }
+    protected virtual void ParticleModificator()
     {
 
     }
@@ -109,5 +117,16 @@ public class PhysicsObject : MonoBehaviour
 
         rb2d.position = rb2d.position + move.normalized * distance;
     }
+    /*
+    private IEnumerator WaitAndPrint(float time)
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(time);
+            print("WaitAndPrint" + Time.time);
+        }
+    }
+    */
+
 
 }
