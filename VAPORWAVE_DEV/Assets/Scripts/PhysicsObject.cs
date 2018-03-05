@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class PhysicsObject : MonoBehaviour
 {
-
     public float minGroundNormalY = .65f;
     public float gravityModifier = 1f;
-
+    public float frottement = 1f;
     protected Vector2 targetVelocity;
-    protected bool grounded;
+    public bool grounded;
     protected Vector2 groundNormal;
     protected Rigidbody2D rb2d;
     protected Vector2 velocity;
@@ -17,7 +16,7 @@ public class PhysicsObject : MonoBehaviour
     protected RaycastHit2D[] hitBuffer = new RaycastHit2D[16];
     protected List<RaycastHit2D> hitBufferList = new List<RaycastHit2D>(16);
     private IEnumerator coroutine;
-
+    public bool mur= false;
     protected const float minMoveDistance = 0.001f;
     protected const float shellRadius = 0.01f;
 
@@ -42,24 +41,47 @@ public class PhysicsObject : MonoBehaviour
         ComputeVelocity();
         Dash();
         ParticleModificator();
+        WallGrab();
     }
 
     protected virtual void ComputeVelocity()
     {
 
     }
+    /*
+    protected virtual IEnumerator Dash()
+    {
+        yield return null;
+    }
+    */
     protected virtual void Dash()
     {
 
     }
+
+    protected virtual void WallGrab()
+    {
+
+    }
+
     protected virtual void ParticleModificator()
     {
 
     }
     void FixedUpdate()
     {
-        velocity += gravityModifier * Physics2D.gravity * Time.deltaTime;
-        velocity.x = targetVelocity.x;
+
+        if (velocity.y < 0)
+        {
+            velocity += gravityModifier * Physics2D.gravity * Time.deltaTime * frottement;
+        }
+        else
+        {
+            velocity += gravityModifier * Physics2D.gravity * Time.deltaTime;
+        }
+
+
+        velocity.x = targetVelocity.x ;
 
         grounded = false;
 
@@ -67,7 +89,7 @@ public class PhysicsObject : MonoBehaviour
 
         Vector2 moveAlongGround = new Vector2(groundNormal.y, -groundNormal.x);
 
-        Vector2 move = moveAlongGround * deltaPosition.x;
+        Vector2 move = moveAlongGround * deltaPosition.x ;
 
         Movement(move, false);
 
@@ -92,7 +114,7 @@ public class PhysicsObject : MonoBehaviour
             for (int i = 0; i < hitBufferList.Count; i++)
             {
                 Vector2 currentNormal = hitBufferList[i].normal;
-                if (currentNormal.y > minGroundNormalY)
+                if (currentNormal.y > minGroundNormalY||mur == true)
                 {
                     grounded = true;
                     if (yMovement)
@@ -115,7 +137,7 @@ public class PhysicsObject : MonoBehaviour
 
         }
 
-        rb2d.position = rb2d.position + move.normalized * distance;
+        rb2d.position = rb2d.position + move.normalized * distance ;
     }
     /*
     private IEnumerator WaitAndPrint(float time)
@@ -127,6 +149,7 @@ public class PhysicsObject : MonoBehaviour
         }
     }
     */
+
 
 
 }

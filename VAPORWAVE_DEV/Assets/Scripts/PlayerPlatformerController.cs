@@ -7,72 +7,119 @@ public class PlayerPlatformerController : PhysicsObject
 
     public float maxSpeed = 7;
     public float jumpTakeOffSpeed = 7;
-
+    public float acceleration;
+    public int sens=1;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
     Vector2 move = Vector2.zero;
     public float hSliderValueX = 1.0f;
     public float hSliderValueY = 1.0f;
     public float hSliderValueZ = 1.0f;
-
+    float charJumpPos;
+    public int wJumpL;
+    public bool outWall=false;
+    public Collider2D grab;
+    public Collider2D grab_left;
+    public Collider2D grab_right;
     public ParticleSystem ps;
     public bool jumping = false;
 
+    public float dash_time = 2f;
     protected bool dash = false;
+    //public Collider2D groundVerif;
+    public Collider2D grabZones;
+
+    float time = 0;
     // Use this for initialization
     void Awake()
     {
+        
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
     }
-    
-        
-    IEnumerator WaitAndPrint(float waitTime)
+    /*
+IEnumerator WaitAndPrint(float waitTime)
+{
+        dash = true;
+        targetVelocity = move * maxSpeed * 20;
+
+    yield return new WaitForSeconds(waitTime);
+    print("WaitAndPrint " + Time.time);
+}
+
+protected override IEnumerator Dash()
+{
+
+    if (Input.GetButtonDown("Dash_"+ this.gameObject.name) && dash == false)
     {
+        yield return StartCoroutine(WaitAndPrint(2.0F));
+        print("Dash ?");
+    }
+    if (Input.GetButtonUp("Dash_" + this.gameObject.name))
+        dash = false;
+
+    print("Dash ?");
+}
+*/
+    protected override void Dash()
+    {
+        //print("Dash ?");
         if (Input.GetButtonDown("Dash_" + this.gameObject.name) && dash == false)
         {
-            dash = true;
-            targetVelocity = move * maxSpeed * 20;
-            dash = false;
+                dash = true;
+
+
+            
+                targetVelocity = move * maxSpeed * 20;
+                //print("Dash");
         }
         if (Input.GetButtonUp("Dash_" + this.gameObject.name))
             dash = false;
 
-        yield return new WaitForSeconds(waitTime);
-        print("WaitAndPrint " + Time.time);
-    }
 
-    protected override IEnumerator Dash()
+    }
+    
+    /*protected override void WallGrab()
     {
 
-        if (Input.GetButtonDown("Dash_"+ this.gameObject.name) && dash == false)
+        if (jumping == true && move.x != 0)
         {
-            yield return StartCoroutine(WaitAndPrint(2.0F));
+            grab_col.gameObject.SetActive(true);
+            print("collider actif");
+            ComputeVelocity();
         }
-        if (Input.GetButtonUp("Dash_" + this.gameObject.name))
-            dash = false;
-    }
+        else
+        {
+            grab_col.gameObject.SetActive(false);
+        }
 
+    }*/
 
     protected override void ComputeVelocity()
     {
-        move.x = Input.GetAxis("Horizontal_" + this.gameObject.name);
+        // print(jumping);
+        
+        move.x = Input.GetAxis("Horizontal_" + this.gameObject.name) * sens ;
 
-        if (Input.GetButtonDown("Jump_" + this.gameObject.name) && grounded)
+        if (Input.GetButtonDown("Jump_" + this.gameObject.name)&&grounded)
         {
             velocity.y = jumpTakeOffSpeed;
+            //print("LA VELOCITE DU SAUT " + velocity.x);
             jumping = true;
 
         }
-        else if (Input.GetButtonUp("Jump_" + this.gameObject.name))
+        else if (Input.GetButtonUp("Jump_" + this.gameObject.name)&&grounded)
         {
+         
             if (velocity.y > 0)
             {
+                //print("QUOI");
                 velocity.y = velocity.y * 0.5f;
                 jumping = false;
             }
         }
 
+       
         bool flipSprite = (spriteRenderer.flipX ? (move.x > 0f) : (move.x < 0f));
         
         if (flipSprite)
@@ -83,7 +130,34 @@ public class PlayerPlatformerController : PhysicsObject
         animator.SetBool("grounded", grounded);
         animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / maxSpeed);
 
-        targetVelocity = move * maxSpeed;
+        targetVelocity = move * maxSpeed * acceleration;
+        
+        if (outWall == true)
+        {
+            switch (sens)
+            {
+                case 1:
+                    if (this.gameObject.transform.position.x >= charJumpPos - wJumpL)
+                    {
+                        print("WAAAAAAAAAA");
+                        sens *= -1;
+                        outWall = false;
+                    }
+
+                    break;
+
+                case -1:
+                    if (this.gameObject.transform.position.x <= charJumpPos + wJumpL)
+                    {
+                        print("WAAAAAAAAAA");
+                        sens *= -1;
+                        outWall = false;
+                    }
+
+                    break;
+            }
+            
+        }
     }
 
 
@@ -129,15 +203,67 @@ public class PlayerPlatformerController : PhysicsObject
         }
     }
 
-    /*
-    void OnCollisionEnter2D(Collider2D collider)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        if (collider.tag == "wall")
+        if (other.gameObject.tag == "Mur")
         {
-            if (Input.GetButtonDown("Jump") && !grounded)
-            {
+            print("enter");
+            frottement = 0.1f;
+            mur = true;
+            acceleration = 1;
+            
+        }
 
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "Mur")
+        {
+            print("exit");
+            frottement = 1f;
+            maxSpeed = 22;
+            mur = false;
+            acceleration = 1;
+            
+           
+        }
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Mur")
+        {
+            
+
+            if (Input.GetButtonDown("Jump_" + this.gameObject.name))
+            {
+                charJumpPos = this.gameObject.transform.position.x;
+                sens  *= - 1;
+                outWall = true;
+            }
+
+        }
+
+        if (collision.gameObject.tag == "Ground")
+        {
+            if(jumping == true && move.x < 0)
+            {
+                grab_left.isTrigger = false;
+            }
+            else if(jumping == true && move.x > 0)
+            {
+                grab_right.isTrigger  = false;
+            }
+
+            if (grab_left.isTrigger == false && move.x > 0)
+            {
+                grab_left.isTrigger = true;
+            }
+            else if (grab_right.isTrigger == false && move.x < 0)
+            {
+                grab_right.isTrigger = true;
             }
         }
-    }*/
+    }
 }
